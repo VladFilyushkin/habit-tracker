@@ -1,13 +1,13 @@
-package com.vladislav.habit_tracker;
+package com.vladislav;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class HabitTrackerApplication {
+public class HabitTrackerImplApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(HabitTrackerApplication.class, args);
+		SpringApplication.run(HabitTrackerImplApplication.class, args);
 	}
 
 }

@@ -1,10 +1,10 @@
-package com.vladislav.habit_tracker;
+package com.vladislav.habittrackerimpl;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class HabitTrackerApplicationTests {
+class HabitTrackerImplApplicationTests {
 
 	@Test
 	void contextLoads() {
