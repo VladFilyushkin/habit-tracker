@@ -1,0 +1,5 @@
+databaseChangeLog:
+  - include:
+      file: v1/001-create-habits-table.yaml
+  - include:
+      file: v1/002-create-record-table.yaml

@@ -1,3 +1,17 @@
 spring:
+
   application:
     name: habit-tracker-impl
+  datasource:
+    url: jdbc:postgresql://localhost:5432/habit_tracker
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+  liquibase:
+    change-log: db.changelog-master.yaml
+logging:
+  level:
+    liquibase: DEBUG
