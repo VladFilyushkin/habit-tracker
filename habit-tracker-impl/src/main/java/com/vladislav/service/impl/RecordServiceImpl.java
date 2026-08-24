@@ -31,8 +31,7 @@ public class RecordServiceImpl implements RecordService {
         Habit habit = habitRepository.findById(id)
                 .orElseThrow(() -> new HabitNotFoundException(String.format(HABIT_NOT_FOUND_EXCEPTION, id)));
 
-        LocalDate now = LocalDate.now();
-        if (recordRepository.existsByHabitIdAndDate(id, now)) {
+        if (recordRepository.existsByHabitIdAndDate(id, LocalDate.now())) {
             throw new RecordAlreadyExistsException(String.format(RECORD_ALREADY_EXISTS_EXCEPTION,id));
         }
 
