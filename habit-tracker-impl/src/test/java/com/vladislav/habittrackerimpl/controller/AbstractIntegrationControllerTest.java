@@ -16,7 +16,7 @@ public class AbstractIntegrationControllerTest {
     private int port;
 
     @BeforeEach
-    public void setup(){
+    public void setup() {
         RestAssured.port = port;
     }
 }

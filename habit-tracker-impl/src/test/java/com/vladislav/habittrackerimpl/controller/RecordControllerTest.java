@@ -15,7 +15,7 @@ import java.util.random.RandomGenerator;
 
 import static com.vladislav.constant.MessageConstant.HABIT_NOT_FOUND_EXCEPTION;
 import static com.vladislav.constant.MessageConstant.RECORD_ALREADY_EXISTS_EXCEPTION;
-import static com.vladislav.habittrackerimpl.service.TestData.getHabitRqBody;
+import static com.vladislav.habittrackerimpl.TestData.getHabitRqBody;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -58,7 +58,7 @@ public class RecordControllerTest extends AbstractIntegrationControllerTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenHabitIsNotFound(){
+    void shouldThrowExceptionWhenHabitIsNotFound() {
         var randomId = RandomGenerator.getDefault().nextLong();
         var exceptionMessage = given()
                 .when()
@@ -73,7 +73,7 @@ public class RecordControllerTest extends AbstractIntegrationControllerTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenHabitAlreadyMarkedToday(){
+    void shouldThrowExceptionWhenHabitAlreadyMarkedToday() {
         var savedHabit = saveHabit();
         given()
                 .when()
@@ -94,7 +94,7 @@ public class RecordControllerTest extends AbstractIntegrationControllerTest {
     }
 
     @Test
-    void shouldFindAllRecordByHabitIdSuccessfully()     {
+    void shouldFindAllRecordByHabitIdSuccessfully() {
         var savedHabit = saveHabit();
 
         given()
@@ -113,7 +113,7 @@ public class RecordControllerTest extends AbstractIntegrationControllerTest {
                 .as(RecordRs[].class);
 
         assertThat(response).hasSize(1);
-        assertEquals(savedHabit.getId(),response[0].getHabitId());
+        assertEquals(savedHabit.getId(), response[0].getHabitId());
         assertEquals(LocalDate.now(), response[0].getDate());
 
 

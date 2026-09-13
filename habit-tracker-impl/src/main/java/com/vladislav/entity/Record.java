@@ -1,10 +1,8 @@
 package com.vladislav.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+
 import java.time.LocalDate;
 
 
@@ -14,6 +12,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @Getter
 @Setter
+@Builder
 public class Record extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)

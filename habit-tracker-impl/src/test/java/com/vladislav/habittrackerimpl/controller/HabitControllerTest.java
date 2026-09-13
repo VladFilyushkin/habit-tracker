@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.random.RandomGenerator;
 
 import static com.vladislav.constant.MessageConstant.HABIT_NOT_FOUND_EXCEPTION;
-import static com.vladislav.habittrackerimpl.service.TestData.getHabitRqBody;
+import static com.vladislav.habittrackerimpl.TestData.getHabitRqBody;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
