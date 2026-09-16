@@ -10,6 +10,7 @@ import com.vladislav.repository.HabitRepository;
 import com.vladislav.service.HabitService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class HabitServiceImpl implements HabitService {
     private final HabitMapper habitMapper;
 
     @Override
+    @Transactional
     public HabitRs save(HabitRq habitRq) {
         var habit = habitMapper.fromDtoToEntity(habitRq);
         Habit saved = habitRepository.save(habit);
@@ -31,6 +33,7 @@ public class HabitServiceImpl implements HabitService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public HabitRs findById(Long id) {
         Habit habit = habitRepository.findById(id)
                 .orElseThrow(() -> new HabitNotFoundException(String.format(HABIT_NOT_FOUND_EXCEPTION, id)));
@@ -38,12 +41,14 @@ public class HabitServiceImpl implements HabitService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<HabitRs> findAll() {
         List<Habit> habitList = habitRepository.findAll();
         return habitMapper.fromEntityListToDtoList(habitList);
     }
 
     @Override
+    @Transactional
     public HabitRs update(Long id, UpdatedHabitRq updatedHabitRq) {
         Habit habit = habitRepository.findById(id)
                 .orElseThrow(() -> new HabitNotFoundException(String.format(HABIT_NOT_FOUND_EXCEPTION, id)));
@@ -52,6 +57,7 @@ public class HabitServiceImpl implements HabitService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         if (habitRepository.existsById(id)) {
             habitRepository.deleteById(id);

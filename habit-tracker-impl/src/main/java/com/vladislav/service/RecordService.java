@@ -7,6 +7,7 @@ import java.util.List;
 public interface RecordService {
 
     RecordRs markComplete(Long id);
+
     List<RecordRs> getAllByHabitId(Long id);
 
 

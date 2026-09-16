@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
-class HabitServiceITest {
+class HabitServiceTest {
 
     @Mock
     private HabitRepository habitRepository;

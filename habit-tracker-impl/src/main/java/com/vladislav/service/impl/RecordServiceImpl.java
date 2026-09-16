@@ -11,6 +11,7 @@ import com.vladislav.repository.RecordRepository;
 import com.vladislav.service.RecordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -27,12 +28,13 @@ public class RecordServiceImpl implements RecordService {
 
 
     @Override
+    @Transactional
     public RecordRs markComplete(Long id) {
         Habit habit = habitRepository.findById(id)
                 .orElseThrow(() -> new HabitNotFoundException(String.format(HABIT_NOT_FOUND_EXCEPTION, id)));
 
         if (recordRepository.existsByHabitIdAndDate(id, LocalDate.now())) {
-            throw new RecordAlreadyExistsException(String.format(RECORD_ALREADY_EXISTS_EXCEPTION,id));
+            throw new RecordAlreadyExistsException(String.format(RECORD_ALREADY_EXISTS_EXCEPTION, id));
         }
 
         Record record = recordMapper.createEntity(habit);
@@ -41,6 +43,7 @@ public class RecordServiceImpl implements RecordService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<RecordRs> getAllByHabitId(Long id) {
         List<Record> recordList = recordRepository.findByHabitId(id);
         return recordMapper.fromListEntityToListDto(recordList);
