@@ -4,6 +4,7 @@ import com.vladislav.dto.request.HabitRq;
 import com.vladislav.dto.request.UpdatedHabitRq;
 import com.vladislav.dto.response.HabitRs;
 import com.vladislav.entity.Habit;
+import com.vladislav.entity.User;
 import com.vladislav.exception.HabitNotFoundException;
 import com.vladislav.mapper.HabitMapper;
 import com.vladislav.repository.HabitRepository;
@@ -25,8 +26,9 @@ public class HabitServiceImpl implements HabitService {
 
     @Override
     @Transactional
-    public HabitRs save(HabitRq habitRq) {
+    public HabitRs save(HabitRq habitRq, User user) {
         var habit = habitMapper.fromDtoToEntity(habitRq);
+        habit.setUser(user);
         Habit saved = habitRepository.save(habit);
         return habitMapper.fromEntityToDto(saved);
 
@@ -34,23 +36,22 @@ public class HabitServiceImpl implements HabitService {
 
     @Override
     @Transactional(readOnly = true)
-    public HabitRs findById(Long id) {
-        Habit habit = habitRepository.findById(id)
+    public HabitRs findById(Long id, User user) {
+        Habit habit = habitRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new HabitNotFoundException(String.format(HABIT_NOT_FOUND_EXCEPTION, id)));
         return habitMapper.fromEntityToDto(habit);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<HabitRs> findAll() {
-        List<Habit> habitList = habitRepository.findAll();
-        return habitMapper.fromEntityListToDtoList(habitList);
+    public List<HabitRs> findAll(User user) {
+        return habitMapper.fromEntityListToDtoList(habitRepository.findAllByUserId(user.getId()));
     }
 
     @Override
     @Transactional
-    public HabitRs update(Long id, UpdatedHabitRq updatedHabitRq) {
-        Habit habit = habitRepository.findById(id)
+    public HabitRs update(Long id, UpdatedHabitRq updatedHabitRq, User user) {
+        Habit habit = habitRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new HabitNotFoundException(String.format(HABIT_NOT_FOUND_EXCEPTION, id)));
         habitMapper.updateFromDto(updatedHabitRq, habit);
         return habitMapper.fromEntityToDto(habitRepository.save(habit));
@@ -58,11 +59,10 @@ public class HabitServiceImpl implements HabitService {
 
     @Override
     @Transactional
-    public void delete(Long id) {
-        if (habitRepository.existsById(id)) {
-            habitRepository.deleteById(id);
-        } else {
+    public void delete(Long id, User user) {
+        if (!habitRepository.existsByIdAndUserId(id, user.getId())) {
             throw new HabitNotFoundException(String.format(HABIT_NOT_FOUND_EXCEPTION, id));
         }
+        habitRepository.deleteById(id);
     }
 }

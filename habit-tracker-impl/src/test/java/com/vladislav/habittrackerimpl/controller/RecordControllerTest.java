@@ -5,6 +5,8 @@ import com.vladislav.entity.Habit;
 import com.vladislav.mapper.HabitMapper;
 import com.vladislav.repository.HabitRepository;
 import com.vladislav.repository.RecordRepository;
+import com.vladislav.repository.UserRepository;
+import io.restassured.http.ContentType;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +17,7 @@ import java.util.random.RandomGenerator;
 
 import static com.vladislav.constant.MessageConstant.HABIT_NOT_FOUND_EXCEPTION;
 import static com.vladislav.constant.MessageConstant.RECORD_ALREADY_EXISTS_EXCEPTION;
-import static com.vladislav.habittrackerimpl.TestData.getHabitRqBody;
+import static com.vladislav.habittrackerimpl.TestData.*;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,26 +26,61 @@ public class RecordControllerTest extends AbstractIntegrationControllerTest {
 
     @Autowired
     private RecordRepository recordRepository;
+
     @Autowired
     private HabitMapper habitMapper;
+
     @Autowired
     private HabitRepository habitRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    private String token;
 
     @BeforeEach
     void beforeEach() {
         habitRepository.deleteAll();
-        recordRepository.deleteAll();
+        userRepository.deleteAll();
+        token = registerAndLogin();
+    }
+
+    @SneakyThrows
+    private String registerAndLogin() {
+        var registerRq = getRegisterRqBody();
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(registerRq)
+                .when()
+                .post("/api/auth/register");
+        var loginRq = getLoginRqBody();
+
+        return given()
+                .contentType(ContentType.JSON)
+                .body(loginRq)
+                .when()
+                .post("/api/auth/login")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getString("token");
     }
 
     @SneakyThrows
     private Habit saveHabit() {
-        return habitRepository.save(habitMapper.fromDtoToEntity(getHabitRqBody()));
+        var currentUser = userRepository.findByUsername("vlad213").orElseThrow();
+        var habit = habitMapper.fromDtoToEntity(getHabitRqBody());
+        habit.setUser(currentUser);
+        return habitRepository.save(habit);
     }
 
     @Test
     void shouldMarkHabitAsCompletedSuccessfully() {
         var savedHabit = saveHabit();
         var response = given()
+                .header("Authorization","Bearer " + token)
                 .when()
                 .post("/api/habits/{habitId}/records", savedHabit.getId())
                 .then()
@@ -61,6 +98,7 @@ public class RecordControllerTest extends AbstractIntegrationControllerTest {
     void shouldThrowExceptionWhenHabitIsNotFound() {
         var randomId = RandomGenerator.getDefault().nextLong();
         var exceptionMessage = given()
+                .header("Authorization","Bearer " + token)
                 .when()
                 .post("/api/habits/{habitId}/records", randomId)
                 .then()
@@ -76,12 +114,14 @@ public class RecordControllerTest extends AbstractIntegrationControllerTest {
     void shouldThrowExceptionWhenHabitAlreadyMarkedToday() {
         var savedHabit = saveHabit();
         given()
+                .header("Authorization","Bearer " + token)
                 .when()
                 .post("/api/habits/{habitId}/records", savedHabit.getId())
                 .then()
                 .statusCode(201);
 
         var exceptionMessage = given()
+                .header("Authorization","Bearer " + token)
                 .when()
                 .post("/api/habits/{habitId}/records", savedHabit.getId())
                 .then()
@@ -98,12 +138,14 @@ public class RecordControllerTest extends AbstractIntegrationControllerTest {
         var savedHabit = saveHabit();
 
         given()
+                .header("Authorization","Bearer " + token)
                 .when()
                 .post("/api/habits/{habitId}/records", savedHabit.getId())
                 .then()
                 .statusCode(201);
 
         var response = given()
+                .header("Authorization","Bearer " + token)
                 .when()
                 .get("/api/habits/{habitId}/records", savedHabit.getId())
                 .then()

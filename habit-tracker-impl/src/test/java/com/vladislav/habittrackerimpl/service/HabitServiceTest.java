@@ -33,7 +33,8 @@ class HabitServiceTest {
     private HabitServiceImpl habitService;
 
     @Test
-    void shouldSaveHabit() {
+    void shouldSaveHabitAndAssignCurrentUser() {
+        var user = getUserForUnit();
         var habit = getHabitForUnit();
         var habitRq = getHabitRqForUnit();
         var habitRs = getHabitRsForUnit();
@@ -42,7 +43,7 @@ class HabitServiceTest {
         when(habitRepository.save(habit)).thenReturn(habit);
         when(habitMapper.fromEntityToDto(habit)).thenReturn(habitRs);
 
-        var result = habitService.save(habitRq);
+        var result = habitService.save(habitRq, user);
 
         assertEquals(habitRs.getTarget(), result.getTarget());
         assertEquals(habitRs.getName(), result.getName());
@@ -51,63 +52,63 @@ class HabitServiceTest {
     }
 
     @Test
-    void shouldFindHabitById() {
-        var id = RandomGenerator.getDefault().nextLong();
-        var habit = getHabitForUnit();
+    void shouldFindHabitByIdForOwner() {
+        var user = getUserForUnit();
+        var habit = getHabitWithIdForUnit();
         var habitRs = getHabitRsForUnit();
 
-        when(habitRepository.findById(id)).thenReturn(Optional.of(habit));
+        when(habitRepository.findByIdAndUserId(habit.getId(), user.getId())).thenReturn(Optional.of(habit));
         when(habitMapper.fromEntityToDto(habit)).thenReturn(habitRs);
 
-        var result = habitService.findById(id);
+        var result = habitService.findById(habit.getId(),user);
 
         assertEquals(habitRs.getTarget(), result.getTarget());
         assertEquals(habitRs.getName(), result.getName());
         assertEquals(habitRs.getDescription(), result.getDescription());
-        verify(habitRepository).findById(id);
+        verify(habitRepository).findByIdAndUserId(habit.getId(), user.getId());
     }
 
     @Test
     void shouldThrowExceptionWhenHabitIsNotFindById() {
+        var user = getUserForUnit();
+        var habit = getHabitWithIdForUnit();
 
-        var id = RandomGenerator.getDefault().nextLong();
-
-        when(habitRepository.findById(id)).thenReturn(Optional.empty());
-        assertThrows(HabitNotFoundException.class, () -> habitService.findById(id));
+        when(habitRepository.findByIdAndUserId(habit.getId(),user.getId())).thenReturn(Optional.empty());
+        assertThrows(HabitNotFoundException.class, () -> habitService.findById(habit.getId(),user));
     }
 
     @Test
-    void shouldFindAll() {
-
-        var habit = getHabitForUnit();
+    void shouldFindAllHabitsForCurrentUserOnly() {
+        var user = getUserForUnit();
+        var habit = getHabitWithIdForUnit();
         var habitRs = getHabitRsForUnit();
         var habitList = List.of(habit);
         var habitRsList = List.of(habitRs);
 
-        when(habitRepository.findAll()).thenReturn(habitList);
+        when(habitRepository.findAllByUserId(user.getId())).thenReturn(habitList);
         when(habitMapper.fromEntityListToDtoList(habitList)).thenReturn(habitRsList);
 
-        var result = habitService.findAll();
+        var result = habitService.findAll(user);
 
         assertEquals(habitRsList.size(), result.size());
         assertEquals(habitRs.getDescription(), result.getFirst().getDescription());
         assertEquals(habitRs.getName(), result.getFirst().getName());
         assertEquals(habitRs.getTarget(), result.getFirst().getTarget());
-        verify(habitRepository).findAll();
+        verify(habitRepository).findAllByUserId(user.getId());
     }
 
     @Test
-    void shouldUpdateHabit() {
-
-        var id = RandomGenerator.getDefault().nextLong();
-        var habit = getHabitForUnit();
+    void shouldUpdateHabitForCurrentUser() {
+        var user = getUserForUnit();
+        var habit = getHabitWithIdForUnit();
         var updatedHabitRq = getUpdatedHabitRqForUnit();
         var habitRs = HabitRs.builder().name("new name").target(8).description("new description").build();
 
-        when(habitRepository.findById(id)).thenReturn(Optional.of(habit));
+        when(habitRepository.findByIdAndUserId(habit.getId(), user.getId())).thenReturn(Optional.of(habit));
         when(habitRepository.save(habit)).thenReturn(habit);
         when(habitMapper.fromEntityToDto(habit)).thenReturn(habitRs);
-        var result = habitService.update(id, updatedHabitRq);
+
+        var result = habitService.update(habit.getId(), updatedHabitRq, user);
 
         assertEquals(updatedHabitRq.getTarget(), result.getTarget());
         assertEquals(updatedHabitRq.getName(), result.getName());
@@ -118,35 +119,35 @@ class HabitServiceTest {
 
     @Test
     void shouldThrowExceptionWhenUpdatingHabitIsNotFoundById() {
-
         var id = RandomGenerator.getDefault().nextLong();
+        var user = getUserForUnit();
         var updatedHabitRq = getUpdatedHabitRqForUnit();
 
-        when(habitRepository.findById(id)).thenReturn(Optional.empty());
+        when(habitRepository.findByIdAndUserId(id, user.getId())).thenReturn(Optional.empty());
 
-        assertThrows(HabitNotFoundException.class, () -> habitService.update(id, updatedHabitRq));
+        assertThrows(HabitNotFoundException.class, () -> habitService.update(id, updatedHabitRq,user));
+        verify(habitRepository, never()).save(any());
     }
 
     @Test
-    void shouldDeleteHabit() {
+    void shouldDeleteHabitForUser() {
 
-        var id = RandomGenerator.getDefault().nextLong();
+        var user = getUserForUnit();
+        var habit = getHabitWithIdForUnit();
 
-        when(habitRepository.existsById(id)).thenReturn(true);
+        when(habitRepository.existsByIdAndUserId(habit.getId(), user.getId())).thenReturn(true);
 
-        habitService.delete(id);
-        verify(habitRepository).deleteById(id);
+        habitService.delete(habit.getId(), user);
+        verify(habitRepository).deleteById(habit.getId());
     }
 
     @Test
     void shouldThrowExceptionWhenDeletingHabitIsNotFound() {
-
+        var user = getUserForUnit();
         var id = RandomGenerator.getDefault().nextLong();
 
-        when(habitRepository.existsById(id)).thenReturn(false);
+        when(habitRepository.existsByIdAndUserId(id, user.getId())).thenReturn(false);
 
-        assertThrows(HabitNotFoundException.class, () -> habitService.delete(id));
+        assertThrows(HabitNotFoundException.class, () -> habitService.delete(id, user));
     }
-
-
 }

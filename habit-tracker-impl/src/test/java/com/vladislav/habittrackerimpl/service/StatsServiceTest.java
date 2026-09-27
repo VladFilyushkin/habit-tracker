@@ -1,7 +1,5 @@
 package com.vladislav.habittrackerimpl.service;
 
-import com.vladislav.dto.response.HabitDailyStatusRs;
-import com.vladislav.entity.Habit;
 import com.vladislav.entity.Record;
 import com.vladislav.exception.HabitNotFoundException;
 import com.vladislav.repository.HabitRepository;
@@ -18,10 +16,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.random.RandomGenerator;
 
+import static com.vladislav.habittrackerimpl.TestData.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -44,21 +41,19 @@ class StatsServiceTest {
 
     @Test
     void shouldCalculateCompletionRateCorrectly() {
-        var randomId = RandomGenerator.getDefault().nextLong();
+        var user = getUserForUnit();
         LocalDate today = LocalDate.now();
-
-        var habit = new Habit();
-        ReflectionTestUtils.setField(habit, "id", randomId);
+        var habit = getHabitWithIdForUnit();
         ReflectionTestUtils.setField(habit, "createdAt", today.minusDays(6).atStartOfDay());
 
-        when(habitRepository.findById(randomId)).thenReturn(Optional.of(habit));
-        when(recordRepository.findByHabitIdOrderByDateDesc(randomId)).thenReturn(List.of(new Record(), new Record(), new Record()));
+        when(habitRepository.findByIdAndUserId(habit.getId(),user.getId())).thenReturn(Optional.of(habit));
+        when(recordRepository.findByHabitIdOrderByDateDesc(habit.getId())).thenReturn(List.of(new Record(), new Record(), new Record()));
         when(streakCalculator.currentStreak(anyList())).thenReturn(3);
         when(streakCalculator.bestStreak(anyList())).thenReturn(3);
-        when(recordRepository.countByHabitId(randomId)).thenReturn(3);
-        when(recordRepository.countByHabitIdAndDateBetween(randomId, today.minusDays(6), today)).thenReturn(3);
+        when(recordRepository.countByHabitId(habit.getId())).thenReturn(3);
+        when(recordRepository.countByHabitIdAndDateBetween(habit.getId(), today.minusDays(6), today)).thenReturn(3);
 
-        var result = statsService.getHabitStats(randomId);
+        var result = statsService.getHabitStats(habit.getId(), user);
 
         assertEquals(42.9, result.getCompletionRate());
         assertEquals(3, result.getTotalCompletions());
@@ -68,46 +63,43 @@ class StatsServiceTest {
 
     @Test
     void shouldThrowWhenHabitNotFoundForStats() {
-        var randomId = RandomGenerator.getDefault().nextLong();
-        when(habitRepository.findById(randomId)).thenReturn(Optional.empty());
+        var user = getUserForUnit();
+        var habit = getHabitWithIdForUnit();
 
-        assertThrows(HabitNotFoundException.class, () -> statsService.getHabitStats(randomId));
+        when(habitRepository.findByIdAndUserId(habit.getId(), user.getId())).thenReturn(Optional.empty());
+
+        assertThrows(HabitNotFoundException.class, () -> statsService.getHabitStats(habit.getId(), user));
     }
 
     @Test
-    void shouldMarkOnlyTodayCompletedHabitsAsCompletedInDailyStats() {
-        var completedHabit = new Habit();
-        ReflectionTestUtils.setField(completedHabit, "id", 1L);
-        completedHabit.setName("drink water");
+    void shouldReturnDailyStatsOnlyForOwnHabits() {
+        var user = getUserForUnit();
+        var habit = getHabitWithIdForUnit();
 
-        var notCompletedHabit = new Habit();
-        ReflectionTestUtils.setField(notCompletedHabit, "id", 2L);
-        notCompletedHabit.setName("jog");
-
-        var todayRecord = new Record();
-        todayRecord.setHabit(completedHabit);
+        var todayRecord = getRecordForUnit();
+        todayRecord.setHabit(habit);
 
         when(recordRepository.findByDate(LocalDate.now())).thenReturn(List.of(todayRecord));
-        when(habitRepository.findAll()).thenReturn(List.of(completedHabit, notCompletedHabit));
+        when(habitRepository.findAllByUserId(user.getId())).thenReturn(List.of(habit));
 
-        var result = statsService.getHabitDailyStats();
+        var result = statsService.getHabitDailyStats(user);
 
-        var statusById = result.getHabits().stream()
-                .collect(java.util.stream.Collectors.toMap(HabitDailyStatusRs::getId, HabitDailyStatusRs::getCompleted));
-
-        assertTrue(statusById.get(1L));
-        assertFalse(statusById.get(2L));
+        assertEquals(1, result.getHabits().size());
+        assertTrue(result.getHabits().getFirst().getCompleted());
     }
 
     @Test
-    void shouldReturnTotalCountEqualToAllHabitsRegardlessOfCompletion() {
-        when(recordRepository.findByDateBetween(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any()))
-                .thenReturn(List.of());
-        when(habitRepository.count()).thenReturn(5L);
+    void shouldReturnWeeklyStatsWithCorrectTotalCountForOwner() {
+        var user = getUserForUnit();
+        LocalDate today = LocalDate.now();
+        LocalDate lastDay = today.minusDays(6);
 
-        var result = statsService.getWeeklyHabitStats();
+        when(habitRepository.countByUserId(user.getId())).thenReturn(3L);
+        when(recordRepository.findByUserIdAndDateBetween(user.getId(), lastDay, today)).thenReturn(List.of());
+
+        var result = statsService.getWeeklyHabitStats(user);
 
         assertEquals(7, result.getWeek().size());
-        result.getWeek().forEach(day -> assertEquals(5L, day.getTotalCount()));
+        result.getWeek().forEach(day -> assertEquals(3L, day.getTotalCount()));
     }
 }

@@ -14,11 +14,11 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UpdatedHabitRq {
 
-    @NotBlank(message = "Name can't be null")
+    @NotBlank(message = "Name is required")
     private String name;
-    @NotBlank(message = "Description can't be null")
+    @NotBlank(message = "Description is required")
     private String description;
-    @NotNull(message = "Target can't be null")
+    @NotNull(message = "Target is required")
     @Positive(message = "Target cant be negative")
     private Integer target;
 }

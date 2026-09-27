@@ -32,10 +32,6 @@
 	<dependencies>
     <dependency>
       <groupId>com.vladislav</groupId>
-      <artifactId>habit-tracker-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.vladislav</groupId>
       <artifactId>habit-tracker-db</artifactId>
     </dependency>
 		<dependency>
@@ -88,6 +84,22 @@
 			<groupId>io.zonky.test</groupId>
 			<artifactId>embedded-database-spring-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
 		</dependency>
 
 

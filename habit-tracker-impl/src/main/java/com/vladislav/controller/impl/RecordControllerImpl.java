@@ -1,6 +1,8 @@
-package com.vladislav.controller;
+package com.vladislav.controller.impl;
 
+import com.vladislav.controller.RecordController;
 import com.vladislav.dto.response.RecordRs;
+import com.vladislav.entity.User;
 import com.vladislav.service.RecordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,12 +18,12 @@ public class RecordControllerImpl implements RecordController {
     private final RecordService recordService;
 
     @Override
-    public ResponseEntity<RecordRs> markComplete(Long habitId) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(recordService.markComplete(habitId));
+    public ResponseEntity<RecordRs> markComplete(Long habitId, User user) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(recordService.markComplete(habitId, user));
     }
 
     @Override
-    public ResponseEntity<List<RecordRs>> getAllById(Long habitId) {
-        return ResponseEntity.ok().body(recordService.getAllByHabitId(habitId));
+    public ResponseEntity<List<RecordRs>> getAllById(Long habitId, User user) {
+        return ResponseEntity.ok().body(recordService.getAllByHabitId(habitId, user));
     }
 }

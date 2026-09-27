@@ -11,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -39,21 +38,18 @@ class RecordServiceTest {
 
     @Test
     void shouldMarkAsCompleted() {
-
-        var id = 1L;
-        var habit = getHabitForUnit();
-        ReflectionTestUtils.setField(habit, "id", id);
-
+        var user = getUserForUnit();
+        var habit = getHabitWithIdForUnit();
         var record = getRecordForUnit();
         var recordRs = getRecordRsForUnit();
 
-        when(habitRepository.findById(id)).thenReturn(Optional.of(habit));
-        when(recordRepository.existsByHabitIdAndDate(id, LocalDate.now())).thenReturn(false);
+        when(habitRepository.findByIdAndUserId(habit.getId(), user.getId())).thenReturn(Optional.of(habit));
+        when(recordRepository.existsByHabitIdAndDate(habit.getId(), LocalDate.now())).thenReturn(false);
         when(recordMapper.createEntity(habit)).thenReturn(record);
         when(recordRepository.save(record)).thenReturn(record);
         when(recordMapper.fromEntityToDto(record)).thenReturn(recordRs);
 
-        var result = recordService.markComplete(id);
+        var result = recordService.markComplete(habit.getId(), user);
 
         assertEquals(recordRs.getDate(), result.getDate());
         assertEquals(recordRs.getHabitId(), result.getHabitId());
@@ -62,23 +58,25 @@ class RecordServiceTest {
 
     @Test
     void shouldThrowExceptionWhenHabitNotFoundById() {
+        var user = getUserForUnit();
         var id = RandomGenerator.getDefault().nextLong();
 
-        when(habitRepository.findById(id)).thenReturn(Optional.empty());
+        when(habitRepository.findByIdAndUserId(id, user.getId())).thenReturn(Optional.empty());
 
-        assertThrows(HabitNotFoundException.class, () -> recordService.markComplete(id));
+        assertThrows(HabitNotFoundException.class, () -> recordService.markComplete(id, user));
     }
 
     @Test
     void shouldThrowExceptionWhenAlreadyMarkedToday() {
+        var habit = getHabitWithIdForUnit();
+        var user = getUserForUnit();
 
-        var id = 1L;
-        var habit = getHabitForUnit();
-        ReflectionTestUtils.setField(habit, "id", id);
+        when(habitRepository.findByIdAndUserId(habit.getId(), user.getId())).thenReturn(Optional.of(habit));
+        when(recordRepository.existsByHabitIdAndDate(habit.getId(), LocalDate.now())).thenReturn(true);
 
-        when(habitRepository.findById(id)).thenReturn(Optional.of(habit));
-        when(recordRepository.existsByHabitIdAndDate(id, LocalDate.now())).thenReturn(true);
+        verify(recordRepository, never()).save(any());
+        verifyNoInteractions(recordMapper);
 
-        assertThrows(RecordAlreadyExistsException.class, () -> recordService.markComplete(id));
+        assertThrows(RecordAlreadyExistsException.class, () -> recordService.markComplete(habit.getId(), user));
     }
 }

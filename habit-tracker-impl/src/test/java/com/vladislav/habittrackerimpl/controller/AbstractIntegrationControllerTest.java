@@ -8,7 +8,9 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureEmbeddedDatabase(provider = AutoConfigureEmbeddedDatabase.DatabaseProvider.EMBEDDED, refresh = AutoConfigureEmbeddedDatabase.RefreshMode.BEFORE_CLASS, type = AutoConfigureEmbeddedDatabase.DatabaseType.POSTGRES)
+@AutoConfigureEmbeddedDatabase(provider = AutoConfigureEmbeddedDatabase.DatabaseProvider.EMBEDDED,
+        refresh = AutoConfigureEmbeddedDatabase.RefreshMode.BEFORE_CLASS,
+        type = AutoConfigureEmbeddedDatabase.DatabaseType.POSTGRES)
 @ActiveProfiles("test")
 public class AbstractIntegrationControllerTest {
 

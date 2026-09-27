@@ -3,6 +3,7 @@ package com.vladislav.service.impl;
 import com.vladislav.dto.response.RecordRs;
 import com.vladislav.entity.Habit;
 import com.vladislav.entity.Record;
+import com.vladislav.entity.User;
 import com.vladislav.exception.HabitNotFoundException;
 import com.vladislav.exception.RecordAlreadyExistsException;
 import com.vladislav.mapper.RecordMapper;
@@ -29,8 +30,8 @@ public class RecordServiceImpl implements RecordService {
 
     @Override
     @Transactional
-    public RecordRs markComplete(Long id) {
-        Habit habit = habitRepository.findById(id)
+    public RecordRs markComplete(Long id, User user) {
+        Habit habit = habitRepository.findByIdAndUserId(id, user.getId())
                 .orElseThrow(() -> new HabitNotFoundException(String.format(HABIT_NOT_FOUND_EXCEPTION, id)));
 
         if (recordRepository.existsByHabitIdAndDate(id, LocalDate.now())) {
@@ -44,7 +45,11 @@ public class RecordServiceImpl implements RecordService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<RecordRs> getAllByHabitId(Long id) {
+    public List<RecordRs> getAllByHabitId(Long id, User user) {
+        if (!habitRepository.existsByIdAndUserId(id, user.getId())) {
+            throw new HabitNotFoundException(String.format(HABIT_NOT_FOUND_EXCEPTION, id));
+        }
+
         List<Record> recordList = recordRepository.findByHabitId(id);
         return recordMapper.fromListEntityToListDto(recordList);
     }

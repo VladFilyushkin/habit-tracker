@@ -3,6 +3,7 @@ package com.vladislav.service.impl;
 import com.vladislav.dto.response.*;
 import com.vladislav.entity.Habit;
 import com.vladislav.entity.Record;
+import com.vladislav.entity.User;
 import com.vladislav.exception.HabitNotFoundException;
 import com.vladislav.repository.HabitRepository;
 import com.vladislav.repository.RecordRepository;
@@ -32,9 +33,9 @@ public class StatsServiceImpl implements StatsService {
 
     @Override
     @Transactional(readOnly = true)
-    public HabitStatsRs getHabitStats(Long habitId) {
-        Habit habit = habitRepository.findById(habitId).orElseThrow(() ->
-                new HabitNotFoundException(String.format(HABIT_NOT_FOUND_EXCEPTION, habitId)));
+    public HabitStatsRs getHabitStats(Long habitId, User user) {
+        Habit habit = habitRepository.findByIdAndUserId(habitId, user.getId())
+                .orElseThrow(() -> new HabitNotFoundException(String.format(HABIT_NOT_FOUND_EXCEPTION, habitId)));
 
         List<Record> recordList = recordRepository.findByHabitIdOrderByDateDesc(habitId);
         List<LocalDate> descendingList = recordList.stream().map(Record::getDate).toList();
@@ -65,7 +66,7 @@ public class StatsServiceImpl implements StatsService {
 
     @Override
     @Transactional(readOnly = true)
-    public DailyStatsRs getHabitDailyStats() {
+    public DailyStatsRs getHabitDailyStats(User user) {
         LocalDate today = LocalDate.now();
 
         List<Record> todayRecords = recordRepository.findByDate(today);
@@ -74,9 +75,9 @@ public class StatsServiceImpl implements StatsService {
                 .map(record -> record.getHabit().getId())
                 .collect(Collectors.toSet());
 
-        List<Habit> allHabits = habitRepository.findAll();
+        List<Habit> userHabits = habitRepository.findAllByUserId(user.getId());
 
-        List<HabitDailyStatusRs> dailyStatusList = allHabits.stream()
+        List<HabitDailyStatusRs> dailyStatusList = userHabits.stream()
                 .map(habit -> HabitDailyStatusRs.builder()
                         .id(habit.getId())
                         .name(habit.getName())
@@ -92,13 +93,13 @@ public class StatsServiceImpl implements StatsService {
 
     @Override
     @Transactional(readOnly = true)
-    public WeeklyStatsRs getWeeklyHabitStats() {
+    public WeeklyStatsRs getWeeklyHabitStats(User user) {
         LocalDate today = LocalDate.now();
         LocalDate lastDay = today.minusDays(6);
 
-        List<Record> weeklyRecords = recordRepository.findByDateBetween(lastDay, today);
+        List<Record> weeklyRecords = recordRepository.findByUserIdAndDateBetween(user.getId(), lastDay, today);
 
-        long habitCount = habitRepository.count();
+        long habitCount = habitRepository.countByUserId(user.getId());
 
         Map<LocalDate, Long> groupedWeeklyRecords = weeklyRecords.stream()
                 .collect(Collectors.groupingBy(Record::getDate, Collectors.counting()));

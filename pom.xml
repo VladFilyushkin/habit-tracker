@@ -15,7 +15,6 @@
     <name/>
     <description/>
     <modules>
-        <module>habit-tracker-api</module>
         <module>habit-tracker-db</module>
         <module>habit-tracker-impl</module>
     </modules>
@@ -37,14 +36,10 @@
         <spring.boot.version>4.1.0</spring.boot.version>
         <project.version>0.0.1-SNAPSHOT</project.version>
         <mapstruct.version>1.6.3</mapstruct.version>
+        <jwt.version>0.13.0</jwt.version>
     </properties>
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>com.vladislav</groupId>
-                <artifactId>habit-tracker-api</artifactId>
-                <version>${project.version}</version>
-            </dependency>
             <dependency>
                 <groupId>com.vladislav</groupId>
                 <artifactId>habit-tracker-db</artifactId>
@@ -144,6 +139,28 @@
                 <artifactId>embedded-postgres-binaries-bom</artifactId>
                 <version>18.4.0</version>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-security</artifactId>
+                <version>${spring.boot.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-api</artifactId>
+                <version>${jwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-impl</artifactId>
+                <version>${jwt.version}</version>
+                <scope>runtime</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-jackson</artifactId>
+                <version>${jwt.version}</version>
+                <scope>runtime</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

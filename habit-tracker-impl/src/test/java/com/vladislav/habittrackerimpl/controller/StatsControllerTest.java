@@ -8,6 +8,8 @@ import com.vladislav.entity.Record;
 import com.vladislav.dto.response.HabitStatsRs;
 import com.vladislav.dto.response.DailyStatsRs;
 import com.vladislav.dto.response.WeeklyStatsRs;
+import com.vladislav.repository.UserRepository;
+import io.restassured.http.ContentType;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,7 +19,7 @@ import java.time.LocalDate;
 import java.util.random.RandomGenerator;
 
 import static com.vladislav.constant.MessageConstant.HABIT_NOT_FOUND_EXCEPTION;
-import static com.vladislav.habittrackerimpl.TestData.getHabitRqBody;
+import static com.vladislav.habittrackerimpl.TestData.*;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,19 +33,50 @@ public class StatsControllerTest extends AbstractIntegrationControllerTest {
     private HabitRepository habitRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private RecordRepository recordRepository;
+
+    private String token;
 
     @BeforeEach
     void beforeEach() {
-        recordRepository.deleteAll();
         habitRepository.deleteAll();
+        userRepository.deleteAll();
+        token = registerAndLogin();
+    }
+
+    @SneakyThrows
+    private String registerAndLogin() {
+        var registerRq = getRegisterRqBody();
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(registerRq)
+                .when()
+                .post("/api/auth/register");
+        var loginRq = getLoginRqBody();
+
+        return given()
+                .contentType(ContentType.JSON)
+                .body(loginRq)
+                .when()
+                .post("/api/auth/login")
+                .then()
+                .statusCode(200)
+                .extract()
+                .jsonPath()
+                .getString("token");
     }
 
     @SneakyThrows
     private Habit saveHabit() {
-        return habitRepository.save(habitMapper.fromDtoToEntity(getHabitRqBody()));
+        var currentUser = userRepository.findByUsername("vlad213").orElseThrow();
+        var habit = habitMapper.fromDtoToEntity(getHabitRqBody());
+        habit.setUser(currentUser);
+        return habitRepository.save(habit);
     }
-
     private void saveRecordForDate(Habit habit, LocalDate date) {
         var record = new Record();
         record.setHabit(habit);
@@ -60,6 +93,7 @@ public class StatsControllerTest extends AbstractIntegrationControllerTest {
         saveRecordForDate(habit, today.minusDays(2));
 
         var response = given()
+                .header("Authorization","Bearer " + token)
                 .when()
                 .get("/api/habits/{id}/stats", habit.getId())
                 .then()
@@ -78,6 +112,7 @@ public class StatsControllerTest extends AbstractIntegrationControllerTest {
         var randomId = RandomGenerator.getDefault().nextLong();
 
         var exceptionMessage = given()
+                .header("Authorization","Bearer " + token)
                 .when()
                 .get("/api/habits/{id}/stats", randomId)
                 .then()
@@ -94,6 +129,7 @@ public class StatsControllerTest extends AbstractIntegrationControllerTest {
         saveRecordForDate(completedHabit, LocalDate.now());
 
         var response = given()
+                .header("Authorization","Bearer " + token)
                 .when()
                 .get("/api/stats/daily")
                 .then()
@@ -112,6 +148,7 @@ public class StatsControllerTest extends AbstractIntegrationControllerTest {
         saveHabit();
 
         var response = given()
+                .header("Authorization","Bearer " + token)
                 .when()
                 .get("/api/stats/week")
                 .then()
