@@ -1,5 +1,6 @@
 package com.vladislav.config;
 
+import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -7,11 +8,18 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+
 @Configuration
 public class SwaggerConfig {
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()
+                .info(new Info()
+                        .title("Habit Tracker API")
+                        .version("0.0.1")
+                        .description("REST API for tracking daily habits: registration, JWT login, "
+                                + "habits, daily completion records and streak statistics. "
+                                + "Log in via /api/auth/login, then press \"Authorize\" and paste the token."))
                 .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))
                 .components(new Components()
                         .addSecuritySchemes("Bearer Authentication",

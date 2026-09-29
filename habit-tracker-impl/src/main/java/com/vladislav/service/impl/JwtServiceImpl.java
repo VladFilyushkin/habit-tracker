@@ -4,6 +4,7 @@ import com.vladislav.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.function.Function;
 
+@Slf4j
 @Service
 public class JwtServiceImpl implements JwtService {
 
@@ -24,6 +26,7 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     public String generateToken(String username) {
+        log.info("Generating JWT token with username={} and lifetime={}", username, expirationMs);
         return Jwts.builder()
                 .subject(username)
                 .issuedAt(new Date())

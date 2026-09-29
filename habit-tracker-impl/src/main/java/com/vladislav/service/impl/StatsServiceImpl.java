@@ -10,6 +10,7 @@ import com.vladislav.repository.RecordRepository;
 import com.vladislav.service.StatsService;
 import com.vladislav.util.StreakCalculator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 
 import static com.vladislav.constant.MessageConstant.HABIT_NOT_FOUND_EXCEPTION;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StatsServiceImpl implements StatsService {
@@ -56,6 +58,9 @@ public class StatsServiceImpl implements StatsService {
             completionRate = Math.round((completedInPeriod * 1000.0) / daysSinceCreation) / 10.0;
         }
 
+        log.info("Habit stats calculated: habitId={}, currentStreak={}, bestStreak={}, completionRate={}," +
+                " totalCompletions={}", habitId, currentStreak, bestStreak, completionRate, completedDays);
+
         return HabitStatsRs.builder()
                 .completionRate(completionRate)
                 .currentStreak(currentStreak)
@@ -67,6 +72,8 @@ public class StatsServiceImpl implements StatsService {
     @Override
     @Transactional(readOnly = true)
     public DailyStatsRs getHabitDailyStats(User user) {
+        log.info("Calculating daily stats for user with id={}", user.getId());
+
         LocalDate today = LocalDate.now();
 
         List<Record> todayRecords = recordRepository.findByDate(today);
@@ -94,6 +101,7 @@ public class StatsServiceImpl implements StatsService {
     @Override
     @Transactional(readOnly = true)
     public WeeklyStatsRs getWeeklyHabitStats(User user) {
+        log.info("Calculating weekly stats for user with userId={}", user.getId());
         LocalDate today = LocalDate.now();
         LocalDate lastDay = today.minusDays(6);
 

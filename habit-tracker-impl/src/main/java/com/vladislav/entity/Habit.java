@@ -24,6 +24,7 @@ public class Habit extends BaseEntity {
     @Column(name = "target", nullable = false)
     private Integer target;
 
+    @Builder.Default
     @OneToMany(mappedBy = "habit", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Record> records = new ArrayList<>();
 
