@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-add-not-null-constraint-habits
+      author: vladfilyushkin
+      changes:
+        - addNotNullConstraint:
+            tableName: habits
+            columnName: user_id
+            columnDataType: BIGINT

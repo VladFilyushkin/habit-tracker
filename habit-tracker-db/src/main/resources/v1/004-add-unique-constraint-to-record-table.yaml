@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-add-unique-constraint-records
+      author: vladfilyushkin
+      changes:
+        - addUniqueConstraint:
+            tableName: records
+            columnNames: habit_id, date
+            constraintName: uq_records_habit_id_date

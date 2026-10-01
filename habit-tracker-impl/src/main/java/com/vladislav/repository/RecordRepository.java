@@ -14,7 +14,8 @@ public interface RecordRepository extends JpaRepository<Record, Long> {
 
     List<Record> findByHabitIdOrderByDateDesc(Long habitId);
 
-    List<Record> findByDate(LocalDate date);
+    @Query("SELECT r FROM Record r WHERE r.habit.user.id = :userId AND r.date = :date")
+    List<Record> findByDateAndUserId(@Param("userId") Long userId, @Param("date") LocalDate date);
 
     @Query("SELECT r FROM Record r WHERE r.habit.user.id = :userId AND r.date BETWEEN :startDate and :endDate   ")
     List<Record> findByUserIdAndDateBetween(@Param("userId") Long userId,

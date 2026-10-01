@@ -5,3 +5,7 @@ databaseChangeLog:
       file: v1/002-create-record-table.yaml
   - include:
       file: v1/003-create-user-table.yaml
+  - include:
+      file: v1/004-add-unique-constraint-to-record-table.yaml
+  - include:
+      file: v1/005-add-notnull-constraint-to-habit-table.yaml

@@ -12,6 +12,7 @@ import com.vladislav.repository.RecordRepository;
 import com.vladislav.service.RecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +29,6 @@ public class RecordServiceImpl implements RecordService {
     private final RecordRepository recordRepository;
     private final HabitRepository habitRepository;
     private final RecordMapper recordMapper;
-
 
     @Override
     @Transactional
@@ -47,8 +47,12 @@ public class RecordServiceImpl implements RecordService {
         }
 
         Record record = recordMapper.createEntity(habit);
-        Record saved = recordRepository.save(record);
-        return recordMapper.fromEntityToDto(saved);
+        try {
+          Record saved = recordRepository.save(record);
+          return recordMapper.fromEntityToDto(saved);
+        } catch (DataIntegrityViolationException e){
+          throw new RecordAlreadyExistsException(String.format(RECORD_ALREADY_EXISTS_EXCEPTION, id));
+        }
     }
 
     @Override

@@ -76,7 +76,7 @@ public class StatsServiceImpl implements StatsService {
 
         LocalDate today = LocalDate.now();
 
-        List<Record> todayRecords = recordRepository.findByDate(today);
+        List<Record> todayRecords = recordRepository.findByDateAndUserId(user.getId(), today);
 
         Set<Long> completedHabitIds = todayRecords.stream()
                 .map(record -> record.getHabit().getId())
