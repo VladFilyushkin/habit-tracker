@@ -1,3 +1,18 @@
+server:
+  port: 8081
 spring:
   application:
     name: habit-tracker-impl
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/habit_tracker}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:secret}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+  liquibase:
+    change-log: db.changelog-master.yaml
+jwt:
+  secret: ${JWT_SECRET:default-secret-for-local-dev-only}
+  expiration: ${JWT_TOKEN_LIFETIME:43200000}
