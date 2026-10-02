@@ -79,7 +79,7 @@ class StatsServiceTest {
         var todayRecord = getRecordForUnit();
         todayRecord.setHabit(habit);
 
-        when(recordRepository.findByDate(LocalDate.now())).thenReturn(List.of(todayRecord));
+        when(recordRepository.findByDateAndUserId(user.getId(), LocalDate.now())).thenReturn(List.of(todayRecord));
         when(habitRepository.findAllByUserId(user.getId())).thenReturn(List.of(habit));
 
         var result = statsService.getHabitDailyStats(user);
